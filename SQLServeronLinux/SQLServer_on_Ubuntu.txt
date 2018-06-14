@@ -1,0 +1,51 @@
+Install SQL Server
+------------------
+
+
+1) import the public repositry GPG keys
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+
+2) register the Microsoft SQL Server Ubunto repo
+sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/16.04/mssql-server-2017.list)"
+
+3) install
+sudo apt-get update
+sudo apt-get install -y mssql-server
+
+4) setup
+sudo /opt/mssql/bin/mssql-conf setup
+
+5) verify running
+systemctl status mssql-server
+
+Install client tools
+--------------------
+
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/16.04/prod.list)"
+
+sudo apt-get update
+sudo apt-get install -y mssql-tools unixodbc-dev
+
+echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
+echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+source ~/.bashrc
+
+
+--open firewalls.
+sudo ufw disable 
+
+--dont forget to open the azure firewall
+
+--copy file up.
+scp db.bak myadmin@13.73.164.123:/home/myadmin
+
+-- Resotore database
+USE [master]
+RESTORE DATABASE [AdventureWorks2016CTP3] FROM  DISK = N'/home/myadmin/db.bak' WITH  FILE = 1,  MOVE N'AdventureWorks2016CTP3_Data' TO N'/var/opt/mssql/data/AdventureWorks2016CTP3_Data.mdf',  MOVE N'AdventureWorks2016CTP3_Log' TO N'/var/opt/mssql/data/AdventureWorks2016CTP3_Log.ldf',  MOVE N'AdventureWorks2016CTP3_mod' TO N'/var/opt/mssql/data/AdventureWorks2016CTP3_mod',  NOUNLOAD,  REPLACE,  STATS = 5
+
+POWERSHELL
+-----------
+
+-- Test connection to SQL port
+Test-NetConnection  -Port 1433 -ComputerName xx.xxx.xx

@@ -1,0 +1,47 @@
+install SQL on Docker.
+---------------------
+
+-- download the docker image from docker hub
+docker pull microsoft/mssql-server-linux:2017-latest
+
+-- normal
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=DriftersEnd3" --name sql1 -p 1433:1433 -d microsoft/mssql-server-linux:2017-latest 
+
+-- logon to container
+docker exec -it sql1 "bash"
+
+-- run command in docker
+/opt/mssql-tools/bin/sqlcmd -U sa
+
+-- run a simple SQL command
+select name from sys.databases;
+
+
+-- copy file to docker container
+docker cp db.bak sql1:/var/opt/mssql/data/db.bak
+
+--restore the backup
+USE [master]
+RESTORE DATABASE [AdventureWorks2016CTP3] FROM  DISK = N'/var/opt/mssql/data/db.bak' WITH  FILE = 1,  MOVE N'AdventureWorks2016CTP3_Data' TO N'/var/opt/mssql/data/AdventureWorks2016CTP3_Data.mdf',  MOVE N'AdventureWorks2016CTP3_Log' TO N'/var/opt/mssql/data/AdventureWorks2016CTP3_Log.ldf',  MOVE N'AdventureWorks2016CTP3_mod' TO N'/var/opt/mssql/data/AdventureWorks2016CTP3_mod',  NOUNLOAD,  STATS = 5
+
+-- shows you can see the file system
+
+declare @filepath varchar(255)
+set @filepath = '/var/opt/mssql/data'
+EXEC xp_dirtree @filepath,10,1
+
+-- simple SQL
+SELECT @@SERVERNAME,
+    SERVERPROPERTY('ComputerNamePhysicalNetBIOS'),
+    SERVERPROPERTY('MachineName'),
+    SERVERPROPERTY('ServerName')
+
+
+-- stop the docker container
+docker stop sql1
+
+-- remove docker container
+docker rm sql1
+
+
+
